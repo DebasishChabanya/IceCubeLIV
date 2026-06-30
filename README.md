@@ -1,8 +1,8 @@
-\# IceCube LIV Correlation
+\#IceCube LIV Correlation
 
 
 
-This repository contains the computational pipeline for testing Lorentz Invariance Violation (LIV) using the 12-year IceCube High-Energy Starting Event (HESE) catalog and Gamma-Ray Burst (GRB) triggers. 
+This repository contains the computational pipeline for testing Lorentz Invariance Violation (LIV) using the 12-year IceCube High-Energy Starting Event (HESE) catalog and Gamma-Ray Burst (GRB) triggers.
 
 
 
@@ -10,7 +10,9 @@ This work was conducted as part of an M1 Physics internship project at the Insti
 
 
 
-\## Project Overview
+\# Project Overview
+
+
 
 The analysis replicates and re-evaluates the baseline time-delay correlations claimed by Amelino-Camelia et al. (2023). It extends the methodology by introducing:
 
@@ -22,21 +24,25 @@ The analysis replicates and re-evaluates the baseline time-delay correlations cl
 
 
 
-\## Repository Structure
+\# Repository Structure
+
+
 
 \* `data/`: Contains the IceCube neutrino catalog (`.npy`) and GRB trigger dataset (`.txt`).
 
-\* `src/`: Core Julia modules (`Neutrino.jl`, `GRB.jl`, `GRB\_RedshiftSampler.jl`) for data ingestion and cosmological kinematic constraints.
+\* `src/`: Core Julia modules (`Neutrino.jl`, `GRB.jl`, `GRB\\\_RedshiftSampler.jl`) for data ingestion and cosmological kinematic constraints.
 
-\* `analysis/`: Julia scripts (`Correlation.jl`, `Replication.jl`, `Extension.jl`, `Check\_RedshiftSampler.jl`) to execute the cross-matching pipeline and perform regressions for both AC2023 data and new dataset, along with verifying the redshift sampling code matching it with theory.
+\* `analysis/`: Julia scripts (`Correlation.jl`, `Replication.jl`, `Extension.jl`, `Check\\\_RedshiftSampler.jl`) to execute the cross-matching pipeline and perform regressions for both AC2023 data and new dataset, along with verifying the redshift sampling code matching it with theory.
 
 \* `results/`: Generated Monte Carlo plots, Inverse Transform Sampling validations, and correlation outputs.
 
 
 
-\## Toolstack
+\# Toolstack
 
-\* \*\*Language:\*\* Julia
 
-\* \*\*Methodology:\*\* Spatiotemporal engine, Weighted Least Squares (WLS), Inverse Transform Sampling.
+
+\* Language: Julia
+
+\* Methodology: Spatiotemporal engine, Weighted Least Squares (WLS), Inverse Transform Sampling.
 
