@@ -1,0 +1,25 @@
+{
+  "julia": "1.10.12",
+  "Plots": "1.41.7",
+  "QuadGK": "2.11.3",
+  "source_commit": "58a0c004b9627200511980b2284d396c0fa72cc9",
+  "checks": [
+    "Both replacement scripts executed successfully in Julia and generated all six analysis plots.",
+    "All 10000 main eta values in each script are finite and positive.",
+    "CSV means and sample standard deviations independently recalculated and matched.",
+    "Original catalog matching returned 15 pairs and 13 distinct neutrinos.",
+    "Minimum angular separation retains GRB170805C for neutrino 107.",
+    "GRB.jl, Neutrino.jl and GRB_RedshiftSampler.jl are unchanged.",
+    "Report tables are generated from the delivered CSV results.",
+    "PDF pages and generated plots inspected visually."
+  ],
+  "code_sha256": {
+    "Replication.jl": "5a8bf2d9760c50c526755456676735556b3c308b7c5ba82a1c792abd039b1c80",
+    "Extension.jl": "1a28a1e12ba5019bfff72dddcaa7374a0937234180e917d769eba031ef686497"
+  },
+  "unchanged_src_sha256": {
+    "Neutrino.jl": "2fc4e0725aa8cffa15b590e4d2f78aff884815f1338bbabd1a1a1a890a1ec1d0",
+    "GRB_RedshiftSampler.jl": "0a54b77404f56492eb5d8ade412c43a424d4d8d92b879376d651a8bc4059db25",
+    "GRB.jl": "58bcc4b32ca280eb32cdf325ddb9d40e2105ff71eb22945262be4f07b56b18cf"
+  }
+}
