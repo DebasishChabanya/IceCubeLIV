@@ -1,171 +1,302 @@
 # IceCubeLIV
 
-M1 Physics internship project by Debasish Chabanya at IAP, with LPNHE.
+GRB–neutrino Lorentz invariance violation (LIV) study at IAP, in collaboration with LPNHE.
 
-This repository contains the GRB–neutrino matching code, a seven-event baseline calculation, and a thirteen-event extension. The updated scripts sample energy over an assumed ±30% range and sample missing redshifts. This file explains how to reproduce the saved results and what we can do for verification.
+The repository contains the GRB–neutrino matching code, the seven-event AC2023 replication and the thirteen-event extension. It also includes the redshift sampling code, Monte Carlo calculations, plots and CSV files with the numerical results.
 
-## 1. What is in each folder
+## 1. Repository structure
 
-| Folder or file | What it contains |
+| File / Folder | Contents |
 |---|---|
-| `data/` | The input catalogs: `Neutrino.npy` and `GRB.txt`. |
-| `src/` | The catalog readers and redshift sampler. |
-| `analysis/` | The four scripts described below. |
-| `results/` | Seven uploaded plots, with `_new` in their names. |
-| `CSV (for values)/` | Saved numerical results from the updated runs. These can be opened in a spreadsheet or read with code. |
-| `old report (full latex zip)/` | The original report and LaTeX source in a ZIP. Some methods and results are now out of date. |
-| `Project.toml` | The direct Julia package dependencies: Plots and QuadGK. |
-| `Manifest.toml` | The package versions from the tested Julia 1.10.12 environment. |
-| `Plots_overview.png` | The four main plots together, for a quick look. |
-| `Validation.json` | Notes from the earlier test run. Its script hashes refer to the delivered files before later comment and console-text edits. It is not a scientific validation. |
-| `README.md` | updated instructions. |
+| `data/` | IceCube neutrino and GRB catalogues |
+| `src/` |  Code reading the data and redshift sampling code |
+| `analysis/` | Julia scripts for matching, sampling and fitting |
+| `results/` | Plots from the analysis |
+| `CSV (for values)/` | Saved numerical results and Monte Carlo draws |
+| `Project.toml` | Julia package dependencies |
+| `Manifest.toml` | Package versions used in the Julia environment |
+| `Validation.json` | Supplementary run-check information |
+| `old report (full latex zip)/` | Internship report and LaTeX files |
 
-## 2. What each code file does
+### Julia files
 
-| File | Purpose |
+| File | What it does |
 |---|---|
-| `src/Neutrino.jl` | Reads the supplied IceCube `.npy` file. The reader is written for that file's binary layout; not to assume it can read a different catalog unchanged. |
-| `src/GRB.jl` | Reads the GRB names, times, positions, position errors, durations and redshifts. |
-| `src/GRB_RedshiftSampler.jl` | Keeps measured redshifts and draws missing ones from separate long- and short-GRB curves. |
-| `analysis/Correlation.jl` | Searches the two catalogs for candidate pairs using energy, time and angular cuts. |
-| `analysis/Check_RedshiftSampler.jl` | Compares sampled redshifts with the curves implemented in the sampler. This checks sampling against those curves, not whether the curves are the right physical model. |
-| `analysis/Replication.jl` | Runs the seven-event fixed-proxy baseline, energy sampling with fixed proxies, and joint energy/redshift sampling. |
-| `analysis/Extension.jl` | Runs joint energy/redshift sampling for the thirteen selected events. |
+| `src/Neutrino.jl` | Reads `Neutrino.npy` |
+| `src/GRB.jl` | Reads `GRB.txt`, including positions, durations and redshifts |
+| `src/GRB_RedshiftSampler.jl` | Samples missing redshifts using the long- and short-GRB distributions |
+| `analysis/Correlation.jl` | Finds candidate GRB–neutrino associations |
+| `analysis/Check_RedshiftSampler.jl` | Compares sampled redshifts against the distributions used |
+| `analysis/Replication.jl` | Seven-event calculations, including the AC2023 baseline and Monte Carlo sampling |
+| `analysis/Extension.jl` | Thirteen-event calculation with energy and redshift sampling |
 
-The two fitting scripts have their event values written directly into arrays. They do not automatically read the output of `Correlation.jl`. The extension uses energies and delays rounded to two decimal places in TeV and days.
+The event arrays used for fit are written in `Replication.jl` and `Extension.jl`. The fit scripts do not directly take their inputs from `Correlation.jl`.
 
-## 3. Run the code
+## 2. Running the code
 
-Use Julia 1.10.12 to match the tested environment. Download or clone the whole repository, then open a terminal in its main folder.
+The project uses Julia. The package versions are recorded in `Manifest.toml`, with Julia 1.10.12 as the reference environment.
 
-Install the packages once:
+Clone or download the repository, then open a terminal in the project directory.
 
-```sh
+Install the required packages:
+
+```bash
 julia --project=. -e "using Pkg; Pkg.instantiate()"
 ```
 
-Run these as separate commands, in this order:
+Run the analysis scripts:
 
-```sh
+```bash
 julia --project=. analysis/Correlation.jl
 julia --project=. analysis/Check_RedshiftSampler.jl
 julia --project=. analysis/Replication.jl
 julia --project=. analysis/Extension.jl
 ```
 
-The first script should report 164 neutrinos, 9,150 GRBs and 15 candidate pairs. The earlier matching check found 13 distinct neutrinos. Neutrino 107 has three candidate GRBs; the extension retains GRB170805C, which had the smallest angular separation. This is a selection rule we took.
+Each script can also be run separately.
 
-To inspect the candidates, start `julia --project=.` from the main folder and enter:
+`Replication.jl` and `Extension.jl` save their generated plots and CSVs in `results/`. The numerical CSVs included in `CSV (for values)/` are saved copies and are not automatically overwritten by these scripts.
+
+`Check_RedshiftSampler.jl` saves `InverseCDF_Visual.png` in the working directory. The corresponding plot in the repository is named `7_Redshift_sampler_check.png`.
+
+## 3. GRB–neutrino matching
+
+The matching is done in `Correlation.jl` using the IceCube neutrino catalogue and the GRB catalogue.
+
+The selection criteria are:
+
+- Neutrino energy between 60 and 500 TeV.
+- Neutrino arrival between 0 and 3 days after the GRB.
+- Angular separation within three times the combined positional uncertainty.
+
+The angular separation is calculated using spherical geometry.
+
+For neutrinos, the code uses an angular uncertainty of 15° for shower/cascade events and 1° for other reconstruction types. Missing GRB positional uncertainties are replaced using the median of the valid catalogue values.
+
+The catalogue contains 164 neutrinos and 9,150 GRBs.
+
+The matching gives 15 candidate pairs involving 13 distinct neutrinos. Neutrino 107 has three possible GRB associations. For the thirteen-event analysis, GRB170805C is retained because it has the smallest angular separation among those candidates.
+
+These are candidate associations selected using the stated criteria, not confirmed physical GRB–neutrino associations.
+
+To print the candidate information, start Julia from the main repository folder:
 
 ```julia
 include("analysis/Correlation.jl")
+
 for m in matches
-    println((neutrino=m.nu.id, grb=m.grb.id,
-             energy_TeV=m.E_TeV, delay_days=m.delta_t_days,
-             z=m.grb.redshift, t90=m.grb.t90,
-             separation_deg=m.d_psi))
+    println((
+        neutrino = m.nu.id,
+        grb = m.grb.id,
+        energy_TeV = m.E_TeV,
+        delay_days = m.delta_t_days,
+        z = m.grb.redshift,
+        t90 = m.grb.t90,
+        separation_deg = m.d_psi
+    ))
 end
 ```
 
-Compare these rows with the arrays in `Extension.jl`. The script does not save this candidate table itself.
+The event values in the fitting scripts can be compared with this output.
 
-### Where the new outputs appear
+## 4. Redshift sampling
 
-- `Replication.jl` and `Extension.jl` write their PNGs and CSVs into `results/`.
-- Their generated PNG names do **not** include `_new`. For example, `1_Replication.png` corresponds to the uploaded `1_Replication_new.png`.
-- Compare the new CSVs in `results/` with the saved copies in `CSV (for values)/`. The scripts do not update that second folder.
-- `Check_RedshiftSampler.jl` writes `InverseCDF_Visual.png` in the folder from which Julia was started. This corresponds to uploaded plot 7. It has no fixed random seed, so its histogram will change slightly between runs.
-- `Plots_overview.png` is a prepared overview; the four scripts do not recreate it.
+The redshift sampling is handled by `src/GRB_RedshiftSampler.jl`.
 
-## 4. Plots and CSV files
+For GRBs with known redshifts, the measured values are retained. Missing redshifts are sampled using separate distributions for long and short GRBs.
 
-| Uploaded plot in `results/` | What it shows |
+The classification uses the GRB duration, T90:
+
+- Long GRBs: T90 > 2 seconds.
+- Short GRBs: T90 ≤ 2 seconds.
+- Missing or invalid T90 values are treated as long GRBs.
+
+The distributions are based on Wanderman & Piran (2010, 2015).
+
+### Long GRBs
+
+The function used in the code is proportional to:
+
+\[
+p(z) \propto
+\begin{cases}
+(1+z)^{2.1}, & 0 \leq z < 3 \\
+128(1+z)^{-1.4}, & 3 \leq z \leq 6
+\end{cases}
+\]
+
+### Short GRBs
+
+\[
+p(z) \propto
+\begin{cases}
+\exp((z-0.9)/0.39), & 0 \leq z \leq 0.9 \\
+\exp(-(z-0.9)/0.26), & 0.9 < z \leq 6
+\end{cases}
+\]
+
+Both distributions are normalized over the range \(0 \leq z \leq 6\).
+
+The sampler builds the cumulative distribution function using trapezoidal integration on a grid of 10,000 redshift values. It then draws a uniform random number and uses inverse-CDF sampling to obtain a redshift.
+
+The module provides two functions:
+
+- `get_final_physical_redshift()` — retains a measured redshift or randomly samples a missing value.
+- `get_final_ac2023_redshift()` — retains a measured redshift or uses the fixed proxies of 1.38 for long GRBs and 0.60 for short GRBs. (As the AC2023 did)
+
+The Monte Carlo calculations in `Replication.jl` and `Extension.jl` use `get_final_physical_redshift()`.
+
+For the thirteen-event analysis, 2 redshifts are measured (1.38 and 0.645), while the remaining 11 are sampled.
+
+A minimum redshift of \(10^{-4}\) is used in the main analysis calculation.
+
+## 5. Energy sampling and fitting
+
+The energy sampling assumes an uncertainty range of ±30%. (As per said by Dr. Pablo) (Can be taken as 30 and 11 depending on cascade or track, but other explanation needed for that)
+
+For each simulation, the energy of each event is sampled independently and uniformly between:
+
+\[
+0.7E \leq E_{\mathrm{sampled}} \leq 1.3E
+\]
+
+This is an assumed bounded uncertainty range, not a Gaussian measurement error.
+
+The sampled energies and redshifts are used to calculate the kinematic factor:
+
+\[
+K = E \frac{D(z)}{D(1)}
+\]
+
+where
+
+\[
+D(z)=\frac{1}{H_0}\int_0^z
+\frac{1+z'}{\sqrt{\Omega_m(1+z')^3+\Omega_\Lambda}}
+\,dz'
+\]
+
+The cosmological parameters used are:
+
+- \(H_0 = 67.4\) km/s/Mpc
+- \(\Omega_m = 0.315\)
+- \(\Omega_\Lambda = 0.685\)
+- \(M_P = 1.2209\times10^{16}\) TeV
+
+The AC2023 baseline uses an ordinary least-squares fit through the origin.
+
+For the Monte Carlo calculations, the estimator used is:
+
+\[
+\eta =
+\frac{\operatorname{mean}(\Delta t_i/K_i)}
+{D(1)/M_P}
+\]
+
+This is equivalent to a through-origin weighted fit with relative weights proportional to \(1/K_i^2\).
+
+Each event contributes equally to the average of \(\Delta t_i/K_i\).
+
+The analysis performs 10,000 Monte Carlo draws. In each draw, the energies are sampled and the missing GRB redshifts are sampled independently.
+
+The random seeds used are:
+
+| Calculation | Seed |
 |---|---|
-| `1_Replication_new.png` | Seven-event fit through the origin using fixed redshift proxies and ordinary least squares. |
-| `2_Energy_uncertainty_new.png` | Fixed redshift proxies, with energy sampling and the mean-ratio estimate. |
-| `3_Redshift_and_energy_new.png` | Seven events with energy and missing-redshift sampling. |
-| `4_Extended_13_Events_new.png` | The thirteen-event extension. |
-| `5_Eta_distribution_7_events_new.png` | The distribution of eta across the seven-event joint simulations. |
-| `6_Eta_distribution_13_events_new.png` | The corresponding thirteen-event distribution. |
-| `7_Redshift_sampler_check_new.png` | Long- and short-GRB samples compared with the implemented curves. |
+| Energy-only sampling | 2025 |
+| Energy and redshift sampling | 2026 |
+| Example redshift scatter plots | 2027 |
 
-Plots 3 and 4 show one example redshift draw at the recorded energies. The horizontal bars show the assumed energy range. Their mean and median lines summarize all simulations; they are not fits to the particular points displayed. The bars do not show the full redshift uncertainty.
+The seeds make the calculations reproducible with the same code and environment.
 
-| CSV in `CSV (for values)/` | Contents |
-|---|---|
-| `replication_baseline.csv` | Baseline eta and its ordinary-least-squares standard error. |
-| `replication_summary.csv` | Summaries for energy-only sampling and joint energy/redshift sampling. |
-| `extension_summary.csv` | Summary for the thirteen-event joint calculation. |
-| `replication_mc_draws.csv` | All 10,000 eta values from the seven-event joint calculation. |
-| `extension_mc_draws.csv` | All 10,000 eta values from the thirteen-event joint calculation. |
-| `replication_cutoff_sensitivity.csv` | Seven-event results for four minimum redshifts. |
-| `extension_cutoff_sensitivity.csv` | Thirteen-event results for the same four minimum redshifts. |
+## 6. Results
 
-`mean` is the average, `sd` is the sample standard deviation, and `median` is the middle value. `p025` and `p975` mark the central 95% of simulated values. They are not automatically a confidence interval for the physical LIV parameter. `draw` is the simulation number, not an event ID. The draw files contain eta values, not the individual sampled energies and redshifts.
+The saved values from the current CSV files are listed below.
 
-At the default minimum redshift of 0.0001, the saved results are:
-
-| Calculation | Eta mean | Spread | Median | Central 95% of draws |
+| Calculation | Mean η | Standard deviation | Median η | Central 95% of draws |
 |---|---:|---:|---:|---|
-| Fixed-proxy baseline | 21.7144 | 4.5090, OLS standard error | — | — |
-| Energy sampling, fixed proxies | 23.9848 | 1.9071, MC standard deviation | 23.9113 | 20.5376–27.8700 |
-| Seven events, energy and redshift | 29.2371 | 445.3353, MC standard deviation | 15.3022 | 10.9358–58.0199 |
-| Thirteen events, energy and redshift | 51.2536 | 966.3341, MC standard deviation | 21.0031 | 15.0678–87.7561 |
+| AC2023 baseline | 21.7144 | 4.5090* | — | — |
+| Energy sampling, fixed redshifts | 23.9848 | 1.9071 | 23.9113 | 20.5376–27.8700 |
+| Seven events, energy and redshift sampling | 23.7583 | 128.8837 | 15.2995 | 10.9351–57.7762 |
+| Thirteen events, energy and redshift sampling | 36.3571 | 317.0267 | 20.9983 | 15.0655–86.6631 |
 
-## 5. What changed in the update
+*The 4.5090 value for the AC2023 baseline is the OLS standard error, not a Monte Carlo standard deviation.*
 
-The old code drew horizontal ±30% bars but kept energies fixed in the calculations. The update samples each energy independently and uniformly between `0.7E` and `1.3E` on every simulation. Energy draws are also independent of the redshift draws.
+For the Monte Carlo results, the standard deviation describes the spread of the simulated eta values.
 
-**The uniform distribution was an added choice.** Saying “±30%” alone does not specify a distribution. Here it is a bounded assumed range, not a measured event-by-event detector response and not a Gaussian one-sigma error. The 30% value was chosen for this study after discussion with other researchers associated with IceCube, not estimated from these fits.
+The 2.5th and 97.5th percentiles give the central 95% of the Monte Carlo draws. Not to be interpreted as confidence intervals for the physical LIV parameter.
 
-Other additions were fixed random seeds, CSV outputs, median/percentile summaries, distribution plots, and minimum-redshift comparisons. The seeds are 2025 for energy-only sampling, 2026 for joint sampling, and 2027 for example scatter plots. The main calculations use 10,000 draws. Fixed seeds make a run repeatable; they do not show that its tail has converged.
+The thirteen-event analysis uses 13 selected candidates, with their energies and time delays entered directly in `Extension.jl`. The time delays are recorded in days and converted to seconds for the calculation.
 
-The energy-only error shown now is the spread across simulations. The earlier code used the standard error of the seven individual ratios. Those are different quantities and should not be described as the same error calculation.
+## 7. Plots
 
-The event arrays, cosmology, catalog readers, catalog matching, redshift curves and mean-ratio estimator were retained. The default clamp of 0.0001 was already in the old code. The extra checks use 0.000001, 0.001 and 0.01, reusing the same energy and redshift draws for comparison.
+The `results/` folder contains seven plots.
 
-## 6. Assumptions and checks
+| Plot | Contents |
+|---|---|
+| `1_Replication.png` | AC2023 seven-event baseline with an OLS fit |
+| `2_Energy_uncertainty.png` | Energy sampling with fixed redshift proxies |
+| `3_Redshift_and_energy.png` | Seven-event calculation with sampled energies and redshifts |
+| `4_Extended_13_Events.png` | Thirteen-event analysis |
+| `5_Eta_distribution_7_events.png` | Distribution of eta for the seven-event Monte Carlo |
+| `6_Eta_distribution_13_events.png` | Distribution of eta for the thirteen-event Monte Carlo |
+| `7_Redshift_sampler_check.png` | Sampled long- and short-GRB distributions compared with the implemented curves |
 
-### Fitting method
+Plots 3 and 4 show one example draw of the redshifts, with the measured energies and assumed ±30% energy ranges.
 
-The baseline uses an ordinary least-squares line through the origin. Its redshift array contains six values of 1.38 and one of 0.60; it does not give all seven events the same redshift.
+The mean and median lines in those plots come from the full Monte Carlo calculations, not from fitting only the points shown in the particular example draw.
 
-The later calculations use:
+Plots 5 and 6 show the distribution of eta values across the 10,000 simulations, using logarithmic axes.
 
-```text
-K = E × D(z)/D(1)
-eta = mean(delta_t / K) / (D(1)/M_P)
-```
+Plot 7 uses 100,000 samples for each GRB class to compare the generated redshift distributions with the distributions implemented in the sampler.
 
-This equals a fit through the origin with relative weights proportional to `1/K²`. It gives each event's ratio the same weight. It is not a full fit using a detector likelihood for uncertain energy.
+`Plots_overview.png` gives a combined view of the four main analysis plots.
 
-Moving from plot 1 to plot 2 changes both the estimator and the energy treatment. With fixed energies, the mean-ratio estimator already gives eta about 23.2437, compared with the OLS value 21.7144.
+## 8. CSV files
 
-### Redshift model and the clamp
+The `CSV (for values)/` folder contains the numerical results.
 
-The sampler normalizes its long- and short-GRB curves over `0 ≤ z ≤ 6` and uses them directly as probability distributions. These are working assumptions. The long-GRB rate shape and the short-GRB shape is from Wanderman & Piran (2010) (2015). This is a distribution we chose, there are others as well.
+| File | Contents |
+|---|---|
+| `replication_baseline.csv` | AC2023 baseline eta and OLS standard error |
+| `replication_summary.csv` | Energy-only and joint-sampling summaries for seven events |
+| `extension_summary.csv` | Thirteen-event Monte Carlo summary |
+| `replication_mc_draws.csv` | 10,000 eta values from the seven-event analysis |
+| `extension_mc_draws.csv` | 10,000 eta values from the thirteen-event analysis |
+| `replication_cutoff_sensitivity.csv` | Seven-event results for different minimum redshifts |
+| `extension_cutoff_sensitivity.csv` | Thirteen-event results for different minimum redshifts |
 
-There is a numerical observation: the cumulative sum starts with a positive value at `z = 0`. The inverse sampler therefore returns exactly zero for a small, finite fraction of draws. The analysis replaces all draws below `Z_MIN` with `Z_MIN`; it does not reject and redraw them. This creates a pile-up at the cutoff. Since eta involves division by `D(z)`, very small redshifts produce very large values.
+In the summary files:
 
-For the thirteen-event run, changing the cutoff from 0.0001 to 0.000001 changes the mean/SD from about 51.3/966.3 to 1510.5/90723.7. The median stays about 21.0 in these saved draws. This is strong sensitivity to the lower boundary, including the sampler artifact. We can try a zero-starting cumulative integral and a grid/convergence check before these extreme tails are used as a result.
+- `mean` is the average eta.
+- `sd` is the standard deviation.
+- `median` is the median eta.
+- `p025` and `p975` are the 2.5th and 97.5th percentiles.
 
-### Event selection and interpretation
+The individual draw files contain the simulation number and the calculated eta. They do not store the individual sampled redshifts or energies.
 
-- Matching uses recorded energies from 60 to 500 TeV, neutrinos arriving 0–3 days after a GRB, and separation within three combined position-error widths.
-- The matching code assumes 15 degrees for showers/cascades and 1 degree for other reconstruction types. Missing GRB position errors are replaced with the catalog median.
-- Energy sampling happens after selection. The code does not repeat the matching cuts when a sampled energy crosses 60 or 500 TeV.
-- Measured redshifts, event times and cosmological parameters are held fixed. The model does not fit an intrinsic source emission delay or an intercept.
-- The seven-event duration values mainly encode long/short classifications; they are not all measured durations.
-- The thirteen-event arrays should be tied to a saved table of neutrino IDs and GRB names, with the duplicate-match rule stated clearly.
-- A large Monte Carlo spread shows instability under the chosen assumptions. Our result does not by itself prove that LIV exists, that it does not exist.
+The cutoff files contain the results for minimum redshifts of \(10^{-6}\), \(10^{-4}\), \(10^{-3}\) and \(10^{-2}\). The same sampled values are used when comparing these cutoffs.
 
-We can check the redshift model and sampler, justify the energy model and estimator, verify the candidate table, and repeat the calculations with more draws.
+## 9. Notes on the analysis
 
-References for checking the rate curves:
+A few assumptions are useful to keep in mind when working with the code:
 
-- Wanderman & Piran (2010), *The luminosity function and the rate of Swift's gamma-ray bursts*: https://arxiv.org/abs/0912.0709 (especially equations 2 and 18).
-- Wanderman & Piran (2015), *The rate, luminosity function and time delay of non-Collapsar short GRBs*: https://arxiv.org/abs/1405.5878 (especially equation 9).
+- The redshift distributions are models for the GRB populations. They are not measurements of the redshifts of individual GRBs.
+- The energy uncertainty is assumed to be uniformly distributed within ±30%.
+- The matching criteria are applied using the catalogue values. Events are not matched again after energy sampling.
+- The fitting scripts use selected event arrays rather than automatically reading the full matching output.
+- The calculations keep the measured redshifts, arrival times and cosmological parameters fixed.
+- The estimator assumes the fitted relation passes through the origin and does not separately model intrinsic source emission delays.
+- The results depend on the selected associations, redshift models, energy assumptions and fitting method.
 
-## 7. What was checked for this README
+The purpose of the analysis is to examine the values of eta obtained under these assumptions and how they behave when energy and unknown redshift values are included in the sampling.
 
-The GitHub files were checked on 22 October 2026. All seven uploaded PNGs and all seven CSVs match the delivered files. The two updated scripts have the same calculations as the delivered versions.
+## 10. References
+
+**Wanderman & Piran (2010)**  
+*The luminosity function and the rate of Swift's gamma-ray bursts*  
+https://arxiv.org/abs/0912.0709
+
+**Wanderman & Piran (2015)**  
+*The rate, luminosity function and time delay of non-Collapsar short GRBs*  
+https://arxiv.org/abs/1405.5878
