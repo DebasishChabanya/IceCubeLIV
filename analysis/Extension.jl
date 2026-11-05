@@ -32,7 +32,7 @@ end
 include("Correlation.jl")
 using .GRB_RedshiftSampler
 
-# Keeping one GRB per neutrino. If a neutrino has several candidate GRBs, using the one with the smallest angular separation.
+# Keeping one GRB per neutrino. If a neutrino has several candidate GRBs, uses the one with the smallest angular separation.
 selected_by_neutrino = Dict{Int32, Any}()
 for m in matches
     id = m.nu.id
