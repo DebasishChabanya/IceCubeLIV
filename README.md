@@ -30,7 +30,7 @@ The repository contains the GRB–neutrino matching code, the seven-event AC2023
 | `analysis/Replication.jl` | Seven-event calculations, including the AC2023 baseline and Monte Carlo sampling |
 | `analysis/Extension.jl` | Thirteen-event calculation with energy and redshift sampling |
 
-The event arrays used for fit are written in `Replication.jl` and `Extension.jl`. The fit scripts do not directly take their inputs from `Correlation.jl`.
+`Replication.jl` uses the seven events from the AC2023 study. `Extension.jl` runs `Correlation.jl`, selects one GRB per neutrino and uses those matches for the analysis.
 
 ## 2. Running the code
 
@@ -53,7 +53,7 @@ julia --project=. analysis/Replication.jl
 julia --project=. analysis/Extension.jl
 ```
 
-Each script can also be run separately.
+Each script can also be run separately. `Extension.jl` runs `Correlation.jl` itself, so there is no need to run the matching separately first.
 
 `Replication.jl` and `Extension.jl` save their generated plots and CSVs in `results/`. The numerical CSVs included in `CSV (for values)/` are saved copies and are not automatically overwritten by these scripts.
 
@@ -97,7 +97,7 @@ for m in matches
 end
 ```
 
-The event values in the fitting scripts can be compared with this output.
+The selected events used by `Extension.jl` are saved in `extension_selected_events.csv`.
 
 ## 4. Redshift sampling
 
@@ -218,7 +218,7 @@ The saved values from the current CSV files are listed below.
 | AC2023 baseline | 21.7144 | 4.5090* | — | — |
 | Energy sampling, fixed redshifts | 23.9848 | 1.9071 | 23.9113 | 20.5376–27.8700 |
 | Seven events, energy and redshift sampling | 23.7583 | 128.8837 | 15.2995 | 10.9351–57.7762 |
-| Thirteen events, energy and redshift sampling | 36.3571 | 317.0267 | 20.9983 | 15.0655–86.6631 |
+| Thirteen events, energy and redshift sampling | 36.3953 | 317.3075 | 21.0210 | 15.0800–86.7331 |
 
 *The 4.5090 value for the AC2023 baseline is the OLS standard error, not a Monte Carlo standard deviation.*
 
@@ -226,7 +226,7 @@ For the Monte Carlo results, the standard deviation describes the spread of the 
 
 The 2.5th and 97.5th percentiles give the central 95% of the Monte Carlo draws. Not to be interpreted as confidence intervals for the physical LIV parameter.
 
-The thirteen-event analysis uses 13 selected candidates, with their energies and time delays entered directly in `Extension.jl`. The time delays are recorded in days and converted to seconds for the calculation.
+`Extension.jl` uses the energies, time delays, redshifts and durations from the selected matches. With the current catalogues, this gives 13 selected candidates. The time delays are recorded in days and converted to seconds for the calculation.
 
 ## 7. Plots
 
@@ -261,6 +261,7 @@ The `CSV (for values)/` folder contains the numerical results.
 | `replication_baseline.csv` | AC2023 baseline eta and OLS standard error |
 | `replication_summary.csv` | Energy-only and joint-sampling summaries for seven events |
 | `extension_summary.csv` | Thirteen-event Monte Carlo summary |
+| `extension_selected_events.csv` | Selected pairs and the catalogue values used in the analysis |
 | `replication_mc_draws.csv` | 10,000 eta values from the seven-event analysis |
 | `extension_mc_draws.csv` | 10,000 eta values from the thirteen-event analysis |
 | `replication_cutoff_sensitivity.csv` | Seven-event results for different minimum redshifts |
@@ -284,7 +285,7 @@ A few assumptions are useful to keep in mind when working with the code:
 - The redshift distributions are models for the GRB populations. They are not measurements of the redshifts of individual GRBs.
 - The energy uncertainty is assumed to be uniformly distributed within ±30%.
 - The matching criteria are applied using the catalogue values. Events are not matched again after energy sampling.
-- The fitting scripts use selected event arrays rather than automatically reading the full matching output.
+- `Extension.jl` takes its inputs from the selected matches returned by `Correlation.jl`.
 - The calculations keep the measured redshifts, arrival times and cosmological parameters fixed.
 - The estimator assumes the fitted relation passes through the origin and does not separately model intrinsic source emission delays.
 - The results depend on the selected associations, redshift models, energy assumptions and fitting method.
