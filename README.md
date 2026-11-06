@@ -12,10 +12,9 @@ The repository contains the GRB–neutrino matching code, the seven-event AC2023
 | `src/` |  Code reading the data and redshift sampling |
 | `analysis/` | Julia scripts for matching, sampling and fitting |
 | `results/` | Plots from the analysis |
-| `CSV (for values)/` | Saved numerical results and Monte Carlo draws |
+| `CSV (for values)/` | Saved numerical results and Monte Carlo draws (for personal verification to see if results are consistent) |
 | `Project.toml` | Julia package dependencies |
 | `Manifest.toml` | Package versions used in the Julia environment |
-| `Validation.json` | Supplementary run-check information |
 | `old report (full latex zip)/` | Internship report and LaTeX files |
 
 ### Julia files
