@@ -9,7 +9,7 @@ The repository contains the GRB–neutrino matching code, the seven-event AC2023
 | File / Folder | Contents |
 |---|---|
 | `data/` | IceCube neutrino and GRB catalogues |
-| `src/` |  Code reading the data and redshift sampling code |
+| `src/` |  Code reading the data and redshift sampling |
 | `analysis/` | Julia scripts for matching, sampling and fitting |
 | `results/` | Plots from the analysis |
 | `CSV (for values)/` | Saved numerical results and Monte Carlo draws |
@@ -55,7 +55,7 @@ julia --project=. analysis/Extension.jl
 
 Each script can also be run separately. `Extension.jl` runs `Correlation.jl` itself, so there is no need to run the matching separately first.
 
-`Replication.jl` and `Extension.jl` save their generated plots and CSVs in `results/`. The numerical CSVs included in `CSV (for values)/` are saved copies and are not automatically overwritten by these scripts.
+`Replication.jl` and `Extension.jl` save their generated plots and CSVs in `results/`. The numerical CSVs included in `CSV (for values)/` have been put separately for better organisation on Git.
 
 `Check_RedshiftSampler.jl` saves `InverseCDF_Visual.png` in the working directory. The corresponding plot in the repository is named `7_Redshift_sampler_check.png`.
 
@@ -111,11 +111,11 @@ The classification uses the GRB duration, T90:
 - Short GRBs: T90 ≤ 2 seconds.
 - Missing or invalid T90 values are treated as long GRBs.
 
-The distributions are based on Wanderman & Piran (2010, 2015).
+The distributions are based on Wanderman & Piran (2010, 2015). (For now)
 
 ### Long GRBs
 
-The function used in the code is proportional to:
+The function used in the code is proportional to (128 used to make it continuous):
 
 \[
 p(z) \propto
@@ -148,7 +148,7 @@ The Monte Carlo calculations in `Replication.jl` and `Extension.jl` use `get_fin
 
 For the thirteen-event analysis, 2 redshifts are measured (1.38 and 0.645), while the remaining 11 are sampled.
 
-A minimum redshift of \(10^{-4}\) is used in the main analysis calculation.
+A minimum redshift of \(10^{-4}\) is used in the main analysis calculation. It can be discussed if we want to choose a different minimum redshift.
 
 ## 5. Energy sampling and fitting
 
@@ -160,7 +160,7 @@ For each simulation, the energy of each event is sampled independently and unifo
 0.7E \leq E_{\mathrm{sampled}} \leq 1.3E
 \]
 
-This is an assumed bounded uncertainty range, not a Gaussian measurement error.
+This is an assumed bounded uncertainty range.
 
 The sampled energies and redshifts are used to calculate the kinematic factor:
 
@@ -183,7 +183,7 @@ The cosmological parameters used are:
 - \(\Omega_\Lambda = 0.685\)
 - \(M_P = 1.2209\times10^{16}\) TeV
 
-The AC2023 baseline uses an ordinary least-squares fit through the origin.
+The AC2023 baseline uses an ordinary least-squares fit through the origin. We had used WLS during the internship, which is how these results are produced, we can also see how it changes if we use OLS instead similarly to how they did.
 
 For the Monte Carlo calculations, the estimator used is:
 
@@ -193,9 +193,9 @@ For the Monte Carlo calculations, the estimator used is:
 {D(1)/M_P}
 \]
 
-This is equivalent to a through-origin weighted fit with relative weights proportional to \(1/K_i^2\).
+This is equivalent to a through-origin weighted fit with relative weights proportional to \(1/K_i^2\). (WLS)
 
-Each event contributes equally to the average of \(\Delta t_i/K_i\).
+Each event contributes equally to the average of \(\Delta t_i/K_i\). (Whereas if OLS is used event contribution will be different and not equal)
 
 The analysis performs 10,000 Monte Carlo draws. In each draw, the energies are sampled and the missing GRB redshifts are sampled independently.
 
@@ -250,17 +250,15 @@ Plots 5 and 6 show the distribution of eta values across the 10,000 simulations,
 
 Plot 7 uses 100,000 samples for each GRB class to compare the generated redshift distributions with the distributions implemented in the sampler.
 
-`Plots_overview.png` gives a combined view of the four main analysis plots.
-
 ## 8. CSV files
 
-The `CSV (for values)/` folder contains the numerical results.
+The `CSV (for values)/` folder contains the numerical results. (I just used them to see if the result code was producing is actually matching the csv or not, for personal verification)
 
 | File | Contents |
 |---|---|
 | `replication_baseline.csv` | AC2023 baseline eta and OLS standard error |
-| `replication_summary.csv` | Energy-only and joint-sampling summaries for seven events |
-| `extension_summary.csv` | Thirteen-event Monte Carlo summary |
+| `replication_summary.csv` | Energy-only and joint-sampling for seven events |
+| `extension_summary.csv` | Thirteen-event Monte Carlo |
 | `extension_selected_events.csv` | Selected pairs and the catalogue values used in the analysis |
 | `replication_mc_draws.csv` | 10,000 eta values from the seven-event analysis |
 | `extension_mc_draws.csv` | 10,000 eta values from the thirteen-event analysis |
@@ -280,15 +278,16 @@ The cutoff files contain the results for minimum redshifts of \(10^{-6}\), \(10^
 
 ## 9. Notes on the analysis
 
-A few assumptions are useful to keep in mind when working with the code:
+A few assumptions we used:
 
 - The redshift distributions are models for the GRB populations. They are not measurements of the redshifts of individual GRBs.
-- The energy uncertainty is assumed to be uniformly distributed within ±30%.
+- The energy uncertainty is assumed to be uniformly distributed within ±30%. 
 - The matching criteria are applied using the catalogue values. Events are not matched again after energy sampling.
 - `Extension.jl` takes its inputs from the selected matches returned by `Correlation.jl`.
 - The calculations keep the measured redshifts, arrival times and cosmological parameters fixed.
 - The estimator assumes the fitted relation passes through the origin and does not separately model intrinsic source emission delays.
-- The results depend on the selected associations, redshift models, energy assumptions and fitting method.
+- The results depend on the selected associations, redshift models, energy assumptions and fitting method. (Hence if we vary from WLS used currently to OLS, or use different redshift sampling other than the Wanderman-Piran model, the results will vary. We can try such alternatives to see for robustness.)
+- Also, the clamp was taken so we can have a minimum redshift floor, and it also alters the results a little. So, this can also be discussed. 
 
 The purpose of the analysis is to examine the values of eta obtained under these assumptions and how they behave when energy and unknown redshift values are included in the sampling.
 

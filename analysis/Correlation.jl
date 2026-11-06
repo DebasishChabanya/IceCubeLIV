@@ -37,17 +37,17 @@ function run_correlation()
 
     matches = []
     
-    println("Sweeping $(length(neutrinos)) neutrinos against $(length(grbs)) GRBs...")
+    println("Checking $(length(neutrinos)) neutrinos against $(length(grbs)) GRBs...")
     
     for nu in neutrinos
-        # 1. ENERGY: Convert GeV to TeV
+        # 1. ENERGY: Converting GeV to TeV
         E_TeV = nu.energy / 1000.0
         
         if E_TeV < 60.0 || E_TeV > 500.0
             continue
         end
         
-        # Convert IceCube Radians to Degrees
+        # Converting IceCube Radians to Degrees
         nu_ra_deg = rad2deg(nu.ra)
         nu_dec_deg = rad2deg(nu.decl)
         
@@ -66,7 +66,7 @@ function run_correlation()
             # 4. SPATIAL (Spherical Geometry)
             sigma_grb = (grb.pos_error > 0.0 && grb.pos_error != 999.0 && grb.pos_error != -999.0) ? grb.pos_error : median_grb_err
             
-            # Use the unit-corrected neutrino degrees
+            # Using the unit-corrected neutrino degrees
             d_psi = haversine_deg(nu_ra_deg, nu_dec_deg, grb.ra, grb.decl)
             
             sigma_total = sqrt(sigma_nu^2 + sigma_grb^2)

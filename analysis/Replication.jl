@@ -123,7 +123,7 @@ mc_etas = zeros(N_sims)
 for i in 1:N_sims
     sim_z = [measured_z_array[j] != -999.0 ? measured_z_array[j] : GRB_RedshiftSampler.get_final_physical_redshift(-999.0, t90_array[j]) for j in 1:7]
     
-    # CLAMP: Prevent division by zero if MC rolls exactly z=0
+    # CLAMP: To prevent division by zero if MC rolls exactly z=0
     raw_sim_z = copy(sim_z)
     sim_z = max.(sim_z, Z_MIN)
     
@@ -147,7 +147,7 @@ println("Eta = $(round(mean_eta_mc, digits=1)) ± $(round(std_eta_mc, digits=1))
 # One redshift example, shown at recorded energies with the assumed energy range
 Random.seed!(2027)
 phys_z_plot = [measured_z_array[i] != -999.0 ? measured_z_array[i] : GRB_RedshiftSampler.get_final_physical_redshift(-999.0, t90_array[i]) for i in 1:7]
-phys_z_plot = max.(phys_z_plot, Z_MIN) # Apply the same clamp for plotting
+phys_z_plot = max.(phys_z_plot, Z_MIN) # Applying the same clamp for plotting
 
 K_phys_plot = [E_TeV[i] * (D_z(phys_z_plot[i]) / D1) for i in 1:7]
 K_phys_err_plot = ENERGY_FRACTION .* K_phys_plot
@@ -203,7 +203,7 @@ println("MC median = ", round(median(mc_etas), digits=2))
 println("Central 95% of MC draws = ", round.(quantile(mc_etas, [0.025, 0.975]), digits=2))
 println("The MC standard deviation is not a fitted confidence interval.")
 
-# Show the tail rather than hiding it behind a mean +/- standard deviation
+# Showing the tail
 eta_bins = 10 .^ range(log10(minimum(mc_etas)), log10(maximum(mc_etas)) + 1e-8, length=61)
 eta_counts = [count(x -> eta_bins[k] <= x < eta_bins[k+1], mc_etas) for k in 1:length(eta_bins)-1]
 eta_centres = sqrt.(eta_bins[1:end-1] .* eta_bins[2:end])

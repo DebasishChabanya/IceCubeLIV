@@ -91,7 +91,7 @@ end
 println("--- Selected events: sampling (10,000 MC runs) ---")
 N_sims = 10000
 Random.seed!(MC_SEED)
-clamp_values = sort(unique([1e-6, 1e-4, 1e-3, 1e-2, Z_MIN]))
+clamp_values = sort(unique([1e-6, 1e-4, 1e-3, 1e-2, Z_MIN])) #putting different clamps to see robustness as it changes quite substancially
 eta_by_clamp = zeros(N_sims, length(clamp_values))
 mc_etas = zeros(N_sims)
 
